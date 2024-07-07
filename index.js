@@ -90,6 +90,62 @@ app.post('/generate', async (req, res) => {
     }
   });
 
+  app.put('/admin/update-status/:trackingNumber', async (req, res) => {
+    const { trackingNumber } = req.params;
+    const { status } = req.body;
+
+    if (!['Pending', 'In Transit', 'Delivered'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+    }
+
+    try {
+        const order = await Order.findOne({ trackingNumber: trackingNumber });
+        if (order) {
+            order.status = status;
+            order.history.push({ date: new Date(), status: status });
+
+            await order.save();
+            res.json({ message: 'Order status updated successfully', order: order });
+        } else {
+            res.status(404).json({ error: 'Order not found' });
+        }
+    } catch (error) {
+        console.error('Error updating order status:', error.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Endpoint to delete an order by tracking number
+app.delete('/admin/delete-order/:trackingNumber', async (req, res) => {
+    const { trackingNumber } = req.params;
+
+    try {
+        const deletedOrder = await Order.findOneAndDelete({ trackingNumber: trackingNumber });
+        if (deletedOrder) {
+            res.json({ message: 'Order deleted successfully', order: deletedOrder });
+        } else {
+            res.status(404).json({ error: 'Order not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting order:', error.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+
+// New endpoint to list all tracking numbers with statuses
+app.get('/admin/list-orders', async (req, res) => {
+    try {
+        const orders = await Order.find({}, 'trackingNumber status');
+        res.json({ orders: orders });
+    } catch (error) {
+        console.error('Error fetching orders:', error.message);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
