@@ -72,18 +72,22 @@ app.get('/track/:trackingNumber', async (req, res) => {
 app.post('/generate', async (req, res) => {
     try {
       const trackingNumber = Math.floor(Math.random() * 1000000000).toString(); // Example: Generate a random 9-digit number
-  
       const newOrder = new Order({
+        name: "",
         orderId: `Order_${Date.now()}`,
         trackingNumber: trackingNumber,
+        amount: 0,
+        address: "",
         status: 'Pending',
         history: [{ date: new Date(), status: 'Pending' }],
         trackingHistory: [{ date: new Date(), status: 'Tracking number generated' }]
       });
   
+
       await newOrder.save();
 
       res.json({ trackingNumber: trackingNumber });
+      console.log(newOrder)
     } catch (error) {
       console.error('Error generating tracking number:', error.message);
       res.status(500).json({ error: 'Failed to generate tracking number' });
@@ -92,7 +96,8 @@ app.post('/generate', async (req, res) => {
 
   app.put('/admin/update-status/:trackingNumber', async (req, res) => {
     const { trackingNumber } = req.params;
-    const { status } = req.body;
+    const { status,amount,address,name} = req.body;
+    console.log(name)
 
     if (!['Pending', 'In Transit', 'Delivered'].includes(status)) {
         return res.status(400).json({ error: 'Invalid status' });
@@ -102,8 +107,10 @@ app.post('/generate', async (req, res) => {
         const order = await Order.findOne({ trackingNumber: trackingNumber });
         if (order) {
             order.status = status;
-            order.history.push({ date: new Date(), status: status });
-
+            order.amount = amount;
+            order.address = address;
+            order.name = name;
+            order.history.push({ date: new Date(), status: status, amount: amount, address: address, name: name});
             await order.save();
             res.json({ message: 'Order status updated successfully', order: order });
         } else {
@@ -137,7 +144,7 @@ app.delete('/admin/delete-order/:trackingNumber', async (req, res) => {
 // New endpoint to list all tracking numbers with statuses
 app.get('/admin/list-orders', async (req, res) => {
     try {
-        const orders = await Order.find({}, 'trackingNumber status');
+        const orders = await Order.find({}, 'trackingNumber status amount address name');
         res.json({ orders: orders });
     } catch (error) {
         console.error('Error fetching orders:', error.message);
