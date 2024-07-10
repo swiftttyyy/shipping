@@ -99,7 +99,7 @@ app.post('/generate', async (req, res) => {
     const { status,amount,address,name} = req.body;
     console.log(name)
 
-    if (!['Pending', 'In Transit', 'Delivered'].includes(status)) {
+    if (!['Pending','Picked Up','In Transit', 'Delivered'].includes(status)) {
         return res.status(400).json({ error: 'Invalid status' });
     }
 
