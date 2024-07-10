@@ -97,7 +97,7 @@ app.post('/generate', async (req, res) => {
 
   app.put('/admin/update-status/:trackingNumber', async (req, res) => {
     const { trackingNumber } = req.params;
-    const { status,amount,fromAddress,name,toAddress} = req.body;
+    const { status,amount,name,toAddress,fromAddress} = req.body;
     console.log(name)
 
     if (!['Pending','Picked Up','In Transit', 'Delivered'].includes(status)) {
@@ -109,10 +109,10 @@ app.post('/generate', async (req, res) => {
         if (order) {
             order.status = status;
             order.amount = amount;
-            order.fromAddress = fromAddress;
             order.name = name;
-            order.toAddress= toAddress,
-            order.history.push({ date: new Date(), status: status, amount: amount, toAddress: address, name: name,fromAddress : fromAddress});
+            order.toAddress= toAddress,          
+              order.fromAddress = fromAddress;
+            order.history.push({ date: new Date(), status: status, amount: amount, toAddress: toAddress, name: name,fromAddress : fromAddress});
             await order.save();
             res.json({ message: 'Order status updated successfully', order: order });
         } else {
@@ -146,7 +146,7 @@ app.delete('/admin/delete-order/:trackingNumber', async (req, res) => {
 // New endpoint to list all tracking numbers with statuses
 app.get('/admin/list-orders', async (req, res) => {
     try {
-        const orders = await Order.find({}, 'trackingNumber status amount address name');
+        const orders = await Order.find({}, 'trackingNumber status amount fromAddress toAddress name');
         res.json({ orders: orders });
     } catch (error) {
         console.error('Error fetching orders:', error.message);
