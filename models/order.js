@@ -4,7 +4,8 @@ const orderSchema = new mongoose.Schema({
   status: String,
   name: String,
   amount: Number,
-  address: String,
+  toAddress: String,
+  fromAddress:String,
   history: [{ date: { type: Date, default: Date.now }, status: String }],
   trackingNumber: String, // Add trackingNumber field
   trackingHistory: [{ date: { type: Date, default: Date.now }, status: String }], // Add trackingHistory field,

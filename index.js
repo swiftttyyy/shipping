@@ -79,6 +79,7 @@ app.post('/generate', async (req, res) => {
         amount: 0,
         address: "",
         status: 'Pending',
+        Address: "",
         history: [{ date: new Date(), status: 'Pending' }],
         trackingHistory: [{ date: new Date(), status: 'Tracking number generated' }]
       });
@@ -96,7 +97,7 @@ app.post('/generate', async (req, res) => {
 
   app.put('/admin/update-status/:trackingNumber', async (req, res) => {
     const { trackingNumber } = req.params;
-    const { status,amount,address,name} = req.body;
+    const { status,amount,fromAddress,name,toAddress} = req.body;
     console.log(name)
 
     if (!['Pending','Picked Up','In Transit', 'Delivered'].includes(status)) {
@@ -108,9 +109,10 @@ app.post('/generate', async (req, res) => {
         if (order) {
             order.status = status;
             order.amount = amount;
-            order.address = address;
+            order.fromAddress = fromAddress;
             order.name = name;
-            order.history.push({ date: new Date(), status: status, amount: amount, address: address, name: name});
+            order.toAddress= toAddress,
+            order.history.push({ date: new Date(), status: status, amount: amount, toAddress: address, name: name,fromAddress : fromAddress});
             await order.save();
             res.json({ message: 'Order status updated successfully', order: order });
         } else {
