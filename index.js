@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const Order = require("./models/order.js")
 const bodyParser = require('body-parser');
+const nodemailer = require('nodemailer')
 require('dotenv').config();
 const dburl = process.env.dburl
 
@@ -142,6 +143,39 @@ app.delete('/admin/delete-order/:trackingNumber', async (req, res) => {
 });
 
 
+app.post("/contact", async(req,res) => {
+  const { from_name, email, number, state, message, agree } = req.body;
+
+  if (!agree) {
+      return res.status(400).send({ message: 'You must agree to receive messages and communications.' });
+  }
+
+  // Create the transporter with the SMTP server details
+  const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+          user: 'davidmiller4504@gmail.com',
+          pass: 'dqhc mwpf nkmb buib'
+      }
+  });
+
+  // Set up email data
+  const mailOptions = {
+      from: email,
+      to: 'help@trustwayshipping.com',
+      subject: 'New Contact Form Submission',
+      text: `Name: ${from_name}\nEmail: ${email}\nTelephone: ${number}\nState: ${state}\nMessage: ${message}`
+  };
+
+  // Send email
+  transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+          return res.status(500).send({ message: 'Error sending email', error });
+      }
+      res.status(200).send({ message: 'Email sent successfully', info });
+  });
+
+})
 
 // New endpoint to list all tracking numbers with statuses
 app.get('/admin/list-orders', async (req, res) => {
